@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, CheckSquare, Clock, TrendingUp, Plus, UserPlus, BookTemplate as FileTemplate, Settings } from 'lucide-react';
+import { Users, CheckSquare, Clock, TrendingUp, Plus, UserPlus, BookTemplate as FileTemplate, Settings, User, Crown } from 'lucide-react';
 import { useStripe } from '../../hooks/useStripe';
 import { useClients, useTasks } from '../../hooks/useDatabase';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { Avatar } from '../ui/Avatar';
 import { SubscriptionStatus } from '../subscription/SubscriptionStatus';
 
 export const AgencyDashboard: React.FC = () => {
+  const { userProfile } = useAuth();
   const { getCurrentPlan, isActiveSubscription } = useStripe();
   const { clients, loading: clientsLoading } = useClients();
   const { tasks, loading: tasksLoading } = useTasks();
@@ -25,6 +28,18 @@ export const AgencyDashboard: React.FC = () => {
   const recentClients = clients
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
+
+  // For free plan, only show the owner
+  const employees = [
+    {
+      id: userProfile?.id || '1',
+      full_name: userProfile?.full_name || 'Agency Owner',
+      email: userProfile?.email || 'owner@agency.com',
+      role: 'agency_owner',
+      avatar_url: userProfile?.avatar_url,
+      created_at: new Date().toISOString(),
+    }
+  ];
 
   if (loading) {
     return (
@@ -144,38 +159,56 @@ export const AgencyDashboard: React.FC = () => {
           </div>
         </Card>
 
-        {/* Task Overview */}
+        {/* Current Employees */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Task Overview</h3>
-            <Link to="/dashboard/tasks">
+            <h3 className="text-lg font-semibold text-gray-900">Current Employees</h3>
+            <Link to="/dashboard/employees">
               <Button variant="ghost" size="sm">
-                View All
+                Manage Team
               </Button>
             </Link>
           </div>
           <div className="space-y-3">
-            {tasks.slice(0, 5).map((task) => {
-              const client = clients.find(c => c.id === task.client_id);
-              return (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {employees.map((employee) => (
+              <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Avatar
+                    src={employee.avatar_url}
+                    alt={employee.full_name}
+                    size="sm"
+                  />
                   <div>
-                    <p className="font-medium text-gray-900">{task.title}</p>
-                    <p className="text-sm text-gray-600">{client?.full_name}</p>
+                    <div className="flex items-center space-x-2">
+                      <p className="font-medium text-gray-900">{employee.full_name}</p>
+                      {employee.role === 'agency_owner' && (
+                        <Crown className="w-3 h-3 text-yellow-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">{employee.email}</p>
                     <p className="text-xs text-gray-500">
-                      {task.task_type.replace('_', ' ')}
+                      {employee.role === 'agency_owner' ? 'Owner' : 'Admin'}
                     </p>
                   </div>
-                  <Badge variant={
-                    task.status === 'completed' ? 'success' :
-                    task.status === 'in_progress' ? 'info' :
-                    task.status === 'waiting' ? 'warning' : 'default'
-                  }>
-                    {task.status.replace('_', ' ')}
-                  </Badge>
                 </div>
-              );
-            })}
+                <Badge variant={employee.role === 'agency_owner' ? 'success' : 'info'}>
+                  {employee.role === 'agency_owner' ? 'Owner' : 'Admin'}
+                </Badge>
+              </div>
+            ))}
+            
+            {/* Free Plan Limitation Notice */}
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <Users className="w-4 h-4 text-yellow-600" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">Free Plan - 1 Employee</p>
+                  <p className="text-xs text-yellow-700">
+                    Upgrade to add more team members
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
       </div>
