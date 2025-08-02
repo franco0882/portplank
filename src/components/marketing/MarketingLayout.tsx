@@ -31,6 +31,7 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
                 <Building className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Portplank</span>
+              <span className="text-xl font-bold text-gray-900">PlankPort</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -128,10 +129,11 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
                   <Building className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">Portplank</span>
+                <span className="text-xl font-bold">PlankPort</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
                 Streamline your agency's client onboarding with professional workflows, 
-                real-time progress tracking, and client portals that impress.
+                © 2025 PlankPort. All rights reserved.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">

@@ -1,6 +1,6 @@
-# Portplank - Marketing Agency Client Onboarding Platform
+# PlankPort - Marketing Agency Client Onboarding Platform
 
-Portplank is a comprehensive SaaS platform that streamlines client onboarding for marketing agencies.
+PlankPort is a comprehensive SaaS platform that streamlines client onboarding for marketing agencies.
 
 ## Features
 

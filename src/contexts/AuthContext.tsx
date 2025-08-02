@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🎭 Activating demo mode - bypassing Supabase authentication');
     const demoProfile = createDemoProfile();
     setUserProfile(demoProfile);
-    toast.success('Welcome to Portplank Demo!');
+    toast.success('Welcome to PlankPort Demo!');
     return;
     
     try {

@@ -89,7 +89,7 @@ export const AboutPage: React.FC = () => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> agency-client relationships</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              OnboardFlow was born from the frustration of manual, chaotic client onboarding processes. 
+              PlankPort was born from the frustration of manual, chaotic client onboarding processes. 
               We believe every agency deserves professional, streamlined workflows that impress clients and save time.
             </p>
           </div>
@@ -104,7 +104,7 @@ export const AboutPage: React.FC = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  Portplank started when our founders, Alex and Sarah, were running their own marketing agency. 
+                  PlankPort started when our founders, Alex and Sarah, were running their own marketing agency. 
                   They were frustrated with the manual, error-prone process of onboarding new clients.
                 </p>
                 <p>
@@ -113,7 +113,7 @@ export const AboutPage: React.FC = () => {
                 </p>
                 <p>
                   After trying existing solutions and finding them lacking, they decided to build the onboarding 
-                  platform they wished they had. Portplank was born from real agency experience and real pain points.
+                  platform they wished they had. PlankPort was born from real agency experience and real pain points.
                 </p>
                 <p>
                   Today, we're proud to help hundreds of agencies create professional, efficient onboarding 

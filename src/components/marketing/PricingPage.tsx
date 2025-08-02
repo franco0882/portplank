@@ -40,6 +40,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ onSelectPlan }) => {
       annualPrice: 0,
       period: 'forever',
       description: 'Perfect for trying out Portplank',
+      description: 'Perfect for trying out PlankPort',
       users: '1 employee (You)',
       clients: '3 clients',
       features: [

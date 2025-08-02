@@ -217,7 +217,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
           
           <h2 className="text-3xl font-bold text-gray-900">Create Your Account</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Get started with Portplank {currentPlan.name} plan
+            Get started with PlankPort {currentPlan.name} plan
           </p>
         </div>
 
@@ -406,7 +406,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({
                     </label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                        portplank.com/
+                        plankport.com/
                       </span>
                       <input
                         type="text"

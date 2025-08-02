@@ -46,19 +46,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
     {
       name: 'Sarah Johnson',
       company: 'Digital Growth Agency',
-      quote: 'Portplank reduced our client onboarding time by 60%. Our clients love the transparency and professional experience.',
+      quote: 'PlankPort reduced our client onboarding time by 60%. Our clients love the transparency and professional experience.',
       avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
     },
     {
       name: 'Mike Chen',
       company: 'Performance Marketing Co.',
-      quote: 'Portplank reduced our client onboarding time by 60%. Our clients love the transparency and professional experience.',
+      quote: 'PlankPort reduced our client onboarding time by 60%. Our clients love the transparency and professional experience.',
       avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
     },
     {
       name: 'Emily Rodriguez',
       company: 'Creative Solutions Agency',
-      quote: 'The template system is a game-changer. We can onboard new clients in minutes instead of hours.',
+      quote: 'PlankPort\'s template system is a game-changer. We can onboard new clients in minutes instead of hours.',
       avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop',
     },
   ];
@@ -272,8 +272,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             Ready to transform your client onboarding?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            See what agency owners are saying about Portplank
-          </p>
+            PlankPort started when our founders, Alex and Sarah, were running their own marketing agency. 
+            Help us transform how agencies onboard clients. Start with PlankPort today.
           <Link to="/signup">
             <Button size="lg" className="px-8 py-4 text-lg">
               Get Started

@@ -54,7 +54,7 @@ export const SuccessPage: React.FC = () => {
             Payment Successful!
           </h1>
           <p className="text-lg text-gray-600">
-            Welcome to OnboardFlow. Your subscription is now active.
+            Welcome to PlankPort. Your subscription is now active.
           </p>
         </div>
 
