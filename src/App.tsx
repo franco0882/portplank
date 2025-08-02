@@ -60,9 +60,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" replace />;
   }
 
-  // If user exists but no profile, redirect to login to re-authenticate
-  if (user && !userProfile && !loading) {
-    console.log('⚠️ ProtectedRoute: User exists but no profile found, redirecting to login');
+  // If user exists but no profile, redirect to login
+  if (!userProfile) {
+    console.log('⚠️ ProtectedRoute: No user profile found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 

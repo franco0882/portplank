@@ -197,17 +197,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const runInitialization = async () => {
       try {
         // Use Promise.race to guarantee initialization completes within 8 seconds
-        const initPromise = initializeAuth();
-        const maxTimeoutPromise = createTimeoutPromise(8000, 'Auth initialization');
-        
-        await Promise.race([initPromise, maxTimeoutPromise]);
-        
-      } catch (error) {
-        console.error('🚨 Auth initialization timed out or failed:', error);
-        
-        if (mounted) {
-          // Force demo mode if everything fails
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError || !profile) {
+            console.error("User profile fetch failed:", profileError);
+            toast.error("Login failed: no profile found.");
+            setUser(null);
+            setUserProfile(null);
+            return;
           console.log('🎭 Forcing demo mode due to timeout');
+
+          setUserProfile(profile);
+          console.log('✅ Profile loaded successfully');
           const demoProfile = createDemoProfile();
           setUserProfile(demoProfile);
           setUser(null);
@@ -251,16 +256,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             console.log('👋 Auth state change: user signed out');
             setUser(null);
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError || !profile) {
+            console.error("User profile fetch failed in auth state change:", profileError);
+            setUser(null);
             setUserProfile(null);
+            return;
           }
-        } catch (error) {
-          console.error('❌ Error in auth state change handler:', error);
-          
-          if (session?.user) {
-            // If we have a user but profile fetch failed, use demo
-            const demoProfile = createDemoProfile(session.user.id);
-            setUserProfile(demoProfile);
-          }
+
+          setUserProfile(profile);
+          console.log('✅ Profile updated from auth change');
         } finally {
           // Always ensure loading is false after auth state changes
           setLoading(false);
@@ -305,7 +315,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('📝 Attempting sign up for:', email);
     
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -315,59 +325,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (authError) {
-        console.error('❌ Sign up auth error:', authError);
-        return { error: authError };
+      if (signUpError) {
+        console.error('❌ Sign up auth error:', signUpError);
+        return { error: signUpError };
       }
 
-      if (authData.user) {
-        console.log('✅ Auth user created, setting up agency and profile...');
-        
-        try {
-          // Create agency first
-          const { data: agencyResult, error: agencyError } = await supabaseAdmin
-            .from('agencies')
-            .insert({
-              name: agencyData.name,
-              slug: agencyData.slug || agencyData.name.toLowerCase().replace(/\s+/g, '-'),
-              website: agencyData.website,
-              phone: agencyData.phone,
-              billing_address: agencyData.billing_address,
-              billing_city: agencyData.billing_city,
-              billing_zip: agencyData.billing_zip,
-              billing_country: agencyData.billing_country || 'Canada'
-            })
-            .select('id')
-            .single();
+      const user = signUpData.user;
+      if (!user) {
+        return { error: new Error("User signup failed unexpectedly") };
+      }
 
-          if (agencyError) {
-            console.error('❌ Error creating agency:', agencyError);
-            return { error: agencyError };
-          }
+      console.log('✅ Auth user created, setting up agency and profile...');
+      
+      try {
+        // Create agency first
+        const { data: agencyResult, error: agencyError } = await supabaseAdmin
+          .from('agencies')
+          .insert({
+            name: agencyData.name,
+            slug: agencyData.slug || agencyData.name.toLowerCase().replace(/\s+/g, '-'),
+            website: agencyData.website,
+            phone: agencyData.phone,
+            billing_address: agencyData.billing_address,
+            billing_city: agencyData.billing_city,
+            billing_zip: agencyData.billing_zip,
+            billing_country: agencyData.billing_country || 'Canada'
+          })
+          .select('id')
+          .single();
 
-          // Create user profile
-          const { error: userError } = await supabaseAdmin
-            .from('users')
-            .insert({
-              id: authData.user.id,
-              email: email,
-              full_name: fullName,
-              role: role as any,
-              agency_id: agencyResult.id
-            });
-
-          if (userError) {
-            console.error('❌ Error creating user profile:', userError);
-            return { error: userError };
-          }
-
-          console.log('✅ Sign up complete');
-          toast.success('Account created successfully!');
-
-        } catch (error) {
-          console.error('💥 Error in signup process:', error);
-          return { error };
+        if (agencyError) {
+          console.error('❌ Error creating agency:', agencyError);
+          return { error: agencyError };
         }
+
+        // ✅ Insert corresponding user profile
+        const { error: insertError } = await supabase.from('users').insert([{
+          id: user.id,
+          email: user.email || email,
+          full_name: fullName,
+          role: role as any,
+          agency_id: agencyResult.id,
+          phone: phone,
+        }]);
+
+        if (insertError) {
+          console.error('❌ Error creating user profile:', insertError);
+          return { error: insertError };
+        }
+
+        console.log('✅ Sign up complete with profile created');
+        toast.success('Account created successfully!');
+
+      } catch (error) {
+        console.error('💥 Error in signup process:', error);
+        return { error };
       }
 
       return { error: null };
