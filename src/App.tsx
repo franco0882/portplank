@@ -29,6 +29,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
             </div>
+            <p className="text-xs text-gray-500 mt-4">
+              If this takes too long, try refreshing the page
+            </p>
           </div>
         </div>
       </div>
@@ -41,6 +44,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   // If user exists but no profile, redirect to login to re-authenticate
   if (user && !userProfile && !loading) {
+    console.log('User exists but no profile found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 

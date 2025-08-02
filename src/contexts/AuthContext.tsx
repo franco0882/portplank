@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
+        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
@@ -45,22 +46,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Fetch real user profile from database
           try {
             const profile = await DatabaseService.getUser(session.user.id);
-            setUserProfile(profile);
+            if (mounted) {
+              setUserProfile(profile);
+            }
           } catch (error) {
             console.error('Error fetching user profile:', error);
-            // If profile doesn't exist, sign out the user
-            await supabase.auth.signOut();
+            if (mounted) {
+              // If profile doesn't exist, sign out the user
+              await supabase.auth.signOut();
+              setUser(null);
+              setUserProfile(null);
+              toast.error('Profile not found. Please sign in again.');
+            }
+          }
+        } else {
+          if (mounted) {
             setUser(null);
             setUserProfile(null);
           }
-        } else {
-          setUser(null);
-          setUserProfile(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        setUser(null);
-        setUserProfile(null);
+        if (mounted) {
+          setUser(null);
+          setUserProfile(null);
+          toast.error('Authentication error. Please try again.');
+        }
       } finally {
         if (mounted) {
           setLoading(false);
@@ -81,16 +92,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Fetch real user profile from database
           try {
             const profile = await DatabaseService.getUser(session.user.id);
-            setUserProfile(profile);
+            if (mounted) {
+              setUserProfile(profile);
+            }
           } catch (error) {
             console.error('Error fetching user profile:', error);
-            setUserProfile(null);
+            if (mounted) {
+              setUserProfile(null);
+              toast.error('Profile not found. Please sign in again.');
+            }
           }
         } else {
-          setUserProfile(null);
+          if (mounted) {
+            setUserProfile(null);
+          }
         }
         
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 

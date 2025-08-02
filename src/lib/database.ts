@@ -15,10 +15,13 @@ export class DatabaseService {
     if (error) {
       // If no user profile exists, return null instead of throwing
       if (error.code === 'PGRST116') {
+        console.log('User profile not found for ID:', id);
         return null;
       }
+      console.error('Database error fetching user:', error);
       throw error;
     }
+    console.log('User profile fetched successfully:', data);
     return data;
   }
 
