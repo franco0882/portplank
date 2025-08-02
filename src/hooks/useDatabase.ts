@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DatabaseService } from '../lib/database';
+import { generateMockData } from '../lib/mockData';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -10,17 +10,23 @@ export const useClients = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchClients = async () => {
-    if (!userProfile?.agency_id) return;
+    if (!userProfile?.agency_id) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const data = await DatabaseService.getClients(userProfile.agency_id);
+      // Use mock data for demo
+      const data = generateMockData.clients();
       setClients(data);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching clients:', err);
       setError(err.message);
-      toast.error('Failed to load clients');
+      // Use mock data as fallback
+      const data = generateMockData.clients();
+      setClients(data);
     } finally {
       setLoading(false);
     }
@@ -32,10 +38,15 @@ export const useClients = () => {
 
   const createClient = async (clientData: any) => {
     try {
-      const newClient = await DatabaseService.createClient({
+      // For demo, just add to local state
+      const newClient = {
+        id: `mock-client-${Date.now()}`,
         ...clientData,
         agency_id: userProfile?.agency_id,
-      });
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
       setClients(prev => [newClient, ...prev]);
       toast.success('Client created successfully');
       return newClient;
@@ -48,12 +59,12 @@ export const useClients = () => {
 
   const updateClient = async (id: string, updates: any) => {
     try {
-      const updatedClient = await DatabaseService.updateClient(id, updates);
+      // For demo, just update local state
       setClients(prev => prev.map(client => 
-        client.id === id ? updatedClient : client
+        client.id === id ? { ...client, ...updates, updated_at: new Date().toISOString() } : client
       ));
       toast.success('Client updated successfully');
-      return updatedClient;
+      return { ...updates, id };
     } catch (err: any) {
       console.error('Error updating client:', err);
       toast.error('Failed to update client');
@@ -63,7 +74,6 @@ export const useClients = () => {
 
   const deleteClient = async (id: string) => {
     try {
-      await DatabaseService.deleteClient(id);
       setClients(prev => prev.filter(client => client.id !== id));
       toast.success('Client deleted successfully');
     } catch (err: any) {
@@ -91,17 +101,23 @@ export const useTemplates = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTemplates = async () => {
-    if (!userProfile?.agency_id) return;
+    if (!userProfile?.agency_id) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
-      const data = await DatabaseService.getTemplates(userProfile.agency_id);
+      // Use mock data for demo
+      const data = generateMockData.templates();
       setTemplates(data);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching templates:', err);
       setError(err.message);
-      toast.error('Failed to load templates');
+      // Use mock data as fallback
+      const data = generateMockData.templates();
+      setTemplates(data);
     } finally {
       setLoading(false);
     }
@@ -113,10 +129,14 @@ export const useTemplates = () => {
 
   const createTemplate = async (templateData: any) => {
     try {
-      const newTemplate = await DatabaseService.createTemplate({
+      // For demo, just add to local state
+      const newTemplate = {
+        id: `mock-template-${Date.now()}`,
         ...templateData,
         agency_id: userProfile?.agency_id,
-      });
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
       setTemplates(prev => [newTemplate, ...prev]);
       toast.success('Template created successfully');
       return newTemplate;
@@ -129,12 +149,11 @@ export const useTemplates = () => {
 
   const updateTemplate = async (id: string, updates: any) => {
     try {
-      const updatedTemplate = await DatabaseService.updateTemplate(id, updates);
       setTemplates(prev => prev.map(template => 
-        template.id === id ? updatedTemplate : template
+        template.id === id ? { ...template, ...updates, updated_at: new Date().toISOString() } : template
       ));
       toast.success('Template updated successfully');
-      return updatedTemplate;
+      return { ...updates, id };
     } catch (err: any) {
       console.error('Error updating template:', err);
       toast.error('Failed to update template');
@@ -144,7 +163,6 @@ export const useTemplates = () => {
 
   const deleteTemplate = async (id: string) => {
     try {
-      await DatabaseService.deleteTemplate(id);
       setTemplates(prev => prev.filter(template => template.id !== id));
       toast.success('Template deleted successfully');
     } catch (err: any) {
@@ -172,46 +190,44 @@ export const useTasks = (clientId?: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTasks = async () => {
-    if (!userProfile?.agency_id && !clientId) {
+    if (!userProfile) {
       setLoading(false);
       return;
     }
     
     try {
       setLoading(true);
-      let data;
-      
-      if (clientId) {
-        data = await DatabaseService.getTasks(clientId);
-      } else if (userProfile?.agency_id) {
-        data = await DatabaseService.getTasksForAgency(userProfile.agency_id);
-      } else {
-        data = [];
-      }
-      
+      // Use mock data for demo
+      const data = generateMockData.tasks();
       setTasks(data);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching tasks:', err);
       setError(err.message);
-      // Don't show toast for demo data issues
-      if (!err.message?.includes('demo-agency-id')) {
-        toast.error('Failed to load tasks');
-      }
+      // Use mock data as fallback
+      const data = generateMockData.tasks();
+      setTasks(data);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (clientId || userProfile?.agency_id) {
+    if (userProfile) {
       fetchTasks();
     }
-  }, [clientId, userProfile?.agency_id]);
+  }, [userProfile]);
 
   const createTask = async (taskData: any) => {
     try {
-      const newTask = await DatabaseService.createTask(taskData);
+      // For demo, just add to local state
+      const newTask = {
+        id: `mock-task-${Date.now()}`,
+        ...taskData,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
       setTasks(prev => [newTask, ...prev]);
       toast.success('Task created successfully');
       return newTask;
@@ -224,12 +240,11 @@ export const useTasks = (clientId?: string) => {
 
   const updateTask = async (id: string, updates: any) => {
     try {
-      const updatedTask = await DatabaseService.updateTask(id, updates);
       setTasks(prev => prev.map(task => 
-        task.id === id ? updatedTask : task
+        task.id === id ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
       ));
       toast.success('Task updated successfully');
-      return updatedTask;
+      return { ...updates, id };
     } catch (err: any) {
       console.error('Error updating task:', err);
       toast.error('Failed to update task');
@@ -239,7 +254,25 @@ export const useTasks = (clientId?: string) => {
 
   const createTasksFromTemplate = async (clientId: string, templateId: string) => {
     try {
-      const newTasks = await DatabaseService.createTasksFromTemplate(clientId, templateId);
+      // For demo, create some mock tasks
+      const newTasks = [
+        {
+          id: `mock-task-${Date.now()}-1`,
+          client_id: clientId,
+          template_task_id: 'template-task-1',
+          title: 'Welcome Call',
+          description: 'Initial welcome and orientation call',
+          task_type: 'meeting_scheduling',
+          status: 'pending',
+          order_index: 1,
+          required: true,
+          estimated_duration: 30,
+          instructions: 'Schedule and complete welcome call with client',
+          metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      ];
       setTasks(prev => [...newTasks, ...prev]);
       toast.success('Tasks created from template');
       return newTasks;
