@@ -74,11 +74,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const MarketingRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   
-  // Allow access to marketing pages even in demo mode
-  if (user && window.location.pathname !== '/') {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
   return <>{children}</>;
 };
 
