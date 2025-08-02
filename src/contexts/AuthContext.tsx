@@ -162,6 +162,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('🔧 Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'MISSING');
     console.log('🔑 Has Anon Key:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
     
+    // 🎭 DEMO MODE: Skip Supabase and go straight to demo dashboard
+    console.log('🎭 Activating demo mode - bypassing Supabase authentication');
+    const demoProfile = createDemoProfile();
+    setUserProfile(demoProfile);
+    toast.success('Welcome to Portplank Demo!');
+    return;
+    
     try {
       // Step 1: Get session with timeout
       const { session, user: sessionUser } = await getSessionWithTimeout();
