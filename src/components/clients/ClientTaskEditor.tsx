@@ -614,6 +614,7 @@ export interface TaskFormProps {
   onCancel: () => void;
 }
 
+export const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
