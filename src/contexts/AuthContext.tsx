@@ -85,31 +85,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Robust session fetching with timeout
   const getSessionWithTimeout = async (): Promise<{ session: any; user: SupabaseUser | null }> => {
-    console.log('🔄 Fetching session with timeout...');
+    console.log('🔄 Fetching session with 10s timeout...');
+    console.log('🌐 Current URL:', window.location.href);
+    console.log('🔧 Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('🔑 Has Anon Key:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
     
     try {
       const sessionPromise = supabase.auth.getSession();
-      const timeoutPromise = createTimeoutPromise(3000, 'getSession');
+      const timeoutPromise = createTimeoutPromise(10000, 'getSession');
       
       const result = await Promise.race([sessionPromise, timeoutPromise]);
       const { data: { session }, error } = result as any;
+      
+      console.log('📊 Session result:', session ? 'Found session' : 'No session');
+      console.log('📊 Session user ID:', session?.user?.id || 'None');
+      console.log('📊 Session error:', error || 'None');
       
       if (error) {
         console.error('❌ Session fetch error:', error);
         throw error;
       }
       
-      console.log('✅ Session fetched successfully:', session ? 'Found' : 'None');
+      console.log('✅ Session fetched successfully');
       return { session, user: session?.user || null };
     } catch (error) {
-      console.error('❌ Session fetch failed or timed out:', error);
+      console.error('❌ Session fetch failed or timed out after 10s:', error);
+      console.log('🔍 Error type:', error instanceof Error ? error.name : typeof error);
+      console.log('🔍 Error message:', error instanceof Error ? error.message : String(error));
       return { session: null, user: null };
     }
   };
 
   // Robust profile fetching with timeout
   const getUserProfileWithTimeout = async (userId: string): Promise<User | null> => {
-    console.log('🔄 Fetching user profile for:', userId);
+    console.log('🔄 Fetching user profile with 10s timeout for:', userId);
     
     try {
       const profilePromise = supabase
@@ -118,10 +127,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .single();
       
-      const timeoutPromise = createTimeoutPromise(3000, 'getUserProfile');
+      const timeoutPromise = createTimeoutPromise(10000, 'getUserProfile');
       
       const result = await Promise.race([profilePromise, timeoutPromise]);
       const { data: profile, error } = result as any;
+      
+      console.log('📊 Profile result:', profile ? 'Found profile' : 'No profile');
+      console.log('📊 Profile error:', error || 'None');
+      console.log('📊 Profile error code:', error?.code || 'None');
       
       if (error) {
         if (error.code === 'PGRST116') {
@@ -135,7 +148,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('✅ Profile fetched successfully:', profile);
       return profile;
     } catch (error) {
-      console.error('❌ Profile fetch failed or timed out:', error);
+      console.error('❌ Profile fetch failed or timed out after 10s:', error);
+      console.log('🔍 Error type:', error instanceof Error ? error.name : typeof error);
+      console.log('🔍 Error message:', error instanceof Error ? error.message : String(error));
       return null;
     }
   };
@@ -197,21 +212,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const runInitialization = async () => {
       try {
         // Use Promise.race to guarantee initialization completes within 8 seconds
-        const initPromise = initializeAuth();
-        const timeoutPromise = createTimeoutPromise(8000, 'initialization');
+        const initPromise = initializeAuth(); 
+        const timeoutPromise = createTimeoutPromise(15000, 'initialization');
         
         await Promise.race([initPromise, timeoutPromise]);
       } catch (error) {
+        console.error('💥 Initialization failed or timed out after 15s:', error);
         if (mounted) {
-          console.log('🎭 Forcing demo mode due to timeout');
-          const demoProfile = createDemoProfile();
-          setUserProfile(demoProfile);
+          console.log('❌ Authentication completely failed - redirecting to login');
           setUser(null);
-          toast.error('Authentication timed out. Using demo mode.');
+          setUserProfile(null);
+          toast.error('Authentication failed. Please try logging in again.');
         }
       } finally {
         if (mounted) {
-          console.log('🏁 Auth initialization complete, setting loading to false');
+          console.log('🏁 Auth initialization complete - setting loading to false');
           setLoading(false);
         }
       }
@@ -222,7 +237,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state change:', event, session?.user?.id);
+        console.log('🔄 Auth state change event:', event);
+        console.log('🔄 Auth state change user:', session?.user?.id || 'None');
         
         if (!mounted) {
           console.log('⚠️ Component unmounted, ignoring auth state change');
@@ -231,6 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
           if (session?.user) {
+            console.log('🔄 Auth state change: User signed in, fetching profile...');
             console.log('🔄 Auth state change: User signed in');
             setUser(session.user);
 
@@ -239,6 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setUserProfile(profile);
               console.log('✅ Profile updated from auth change');
             } catch (error) {
+              console.error('❌ Profile fetch failed in auth state change:', error);
               console.error('❌ Error in auth state change profile fetch:', error);
               // Use demo profile as fallback
               const demoProfile = createDemoProfile(session.user.id);
@@ -249,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
             setUserProfile(null);
           }
+          console.log('🔄 Auth state change complete');
         } finally {
           // Always ensure loading is false after auth state changes
           setLoading(false);
