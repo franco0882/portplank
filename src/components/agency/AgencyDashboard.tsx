@@ -101,27 +101,27 @@ export const AgencyDashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Completed</p>
               <p className="text-2xl font-bold text-gray-900">{completedClients}</p>
-            <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
+            </div>
           </div>
-              <p className="text-sm text-gray-600">Task Completion</p>
-              <p className="text-xl font-bold text-gray-900">{taskCompletionRate}%</p>
+        </Card>
+
         <Card>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-            <CheckSquare className="w-5 h-5 text-purple-600 mr-2" />
-              <p className="text-2xl font-bold text-gray-900">{pendingTasks}</p>
               <p className="text-sm text-gray-600">Avg Tasks/Client</p>
               <p className="text-xl font-bold text-gray-900">{avgTasksPerClient}</p>
+            </div>
+          </div>
         </Card>
 
         <Card>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-purple-600" />
-            <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
+            </div>
             <div className="ml-4">
               <p className="text-sm text-gray-600">Client Success</p>
               <p className="text-2xl font-bold text-gray-900">
