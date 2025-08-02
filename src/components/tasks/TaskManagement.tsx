@@ -123,11 +123,6 @@ export const TaskManagement: React.FC = () => {
           </div>
           
           {!isClient && activeTab === 'custom' && (
-            <Button size="sm" icon={Plus}>
-              Add Custom Task
-            </Button>
-          )}
-          {!isClient && activeTab === 'custom' && (
             <Button size="sm" icon={Plus} onClick={() => setShowCreateCustomTask(true)}>
               Add Custom Task
             </Button>
@@ -274,9 +269,6 @@ export const TaskManagement: React.FC = () => {
             }
           </p>
           {!isClient && activeTab === 'custom' && !searchTerm && statusFilter === 'all' && (
-            <Button className="mt-4" icon={Plus}>
-              Create Custom Task
-            </Button>
             <Button className="mt-4" icon={Plus} onClick={() => setShowCreateCustomTask(true)}>
               Create Custom Task
             </Button>
@@ -285,3 +277,4 @@ export const TaskManagement: React.FC = () => {
       )}
     </div>
   );
+};
