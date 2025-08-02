@@ -31,7 +31,6 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
                 <Building className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Portplank</span>
-              <span className="text-xl font-bold text-gray-900">PlankPort</span>
             </Link>
 
             {/* Desktop Navigation */}
