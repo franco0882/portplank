@@ -24,19 +24,22 @@ export const LoginForm: React.FC = () => {
     setError('');
 
     try {
+      console.log('🔐 LoginForm: Attempting sign in...');
       const { error } = await signIn(email, password);
+      
       if (error) {
+        console.error('❌ LoginForm: Sign in failed:', error);
         if (error.message === 'Invalid login credentials') {
           setError('Invalid email or password. Please check your credentials and try again.');
         } else {
           setError(error.message);
         }
       } else {
-        toast.success('Welcome back!');
+        console.log('✅ LoginForm: Sign in successful, navigating to dashboard');
         navigate('/dashboard');
       }
     } catch (err) {
-      console.error('Sign in error:', err);
+      console.error('💥 LoginForm: Sign in exception:', err);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

@@ -16,9 +16,16 @@ import { SuccessPage } from './components/success/SuccessPage';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, userProfile, loading } = useAuth();
   
-  console.log('ProtectedRoute state:', { user: !!user, userProfile: !!userProfile, loading });
+  console.log('🛡️ ProtectedRoute state:', { 
+    hasUser: !!user, 
+    hasUserProfile: !!userProfile, 
+    loading,
+    userEmail: user?.email,
+    userRole: userProfile?.role 
+  });
   
   if (loading) {
+    console.log('⏳ ProtectedRoute: Still loading, showing loading screen');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-white rounded-2xl shadow-xl p-12 max-w-md w-full mx-4">
@@ -32,7 +39,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
               <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
             </div>
             <p className="text-xs text-gray-500 mt-4">
-              If this takes too long, <button onClick={() => window.location.reload()} className="text-blue-600 underline">refresh the page</button>
+              If this takes too long, <button 
+                onClick={() => {
+                  console.log('🔄 User clicked refresh');
+                  window.location.reload();
+                }} 
+                className="text-blue-600 underline"
+              >
+                refresh the page
+              </button>
             </p>
           </div>
         </div>
@@ -41,16 +56,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (!user) {
-    console.log('No user, redirecting to login');
+    console.log('🚫 ProtectedRoute: No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   // If user exists but no profile, redirect to login to re-authenticate
   if (user && !userProfile && !loading) {
-    console.log('User exists but no profile found, redirecting to login');
+    console.log('⚠️ ProtectedRoute: User exists but no profile found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
+  console.log('✅ ProtectedRoute: All checks passed, rendering children');
   return <>{children}</>;
 };
 
