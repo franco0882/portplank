@@ -7,6 +7,7 @@ import { ClientDashboard } from '../clients/ClientDashboard';
 import { ClientManagement } from '../agency/ClientManagement';
 import { TemplateManagement } from '../agency/TemplateManagement';
 import { EmployeeManagement } from '../agency/EmployeeManagement';
+import { ClientTaskEditor } from '../clients/ClientTaskEditor';
 import { TaskManagement } from '../tasks/TaskManagement';
 import { MessagesPage } from '../messages/MessagesPage';
 import { SettingsPage } from '../settings/SettingsPage';
@@ -34,6 +35,7 @@ export const DashboardRoutes: React.FC = () => {
         {isAgencyUser && (
           <>
             <Route path="/clients" element={<ClientManagement />} />
+            <Route path="/clients/:clientId/editor" element={<ClientTaskEditor />} />
             <Route path="/templates" element={<TemplateManagement />} />
             <Route path="/employees" element={<EmployeeManagement />} />
             <Route path="/analytics" element={<AnalyticsPage />} />

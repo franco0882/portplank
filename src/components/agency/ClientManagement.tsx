@@ -244,8 +244,13 @@ export const ClientManagement: React.FC = () => {
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <Button variant="ghost" size="sm" className="w-full">
-                  View Progress
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => window.location.href = `/dashboard/clients/${client.id}/editor`}
+                >
+                  View Dashboard
                 </Button>
               </div>
             </Card>
