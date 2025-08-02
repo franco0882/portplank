@@ -30,7 +30,6 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Building className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">PlankPort</span>
             </Link>
 
             {/* Desktop Navigation */}
