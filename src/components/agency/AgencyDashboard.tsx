@@ -22,8 +22,10 @@ export const AgencyDashboard: React.FC = () => {
 
   const activeClients = clients.filter(client => client.status === 'active').length;
   const completedClients = clients.filter(client => client.status === 'completed').length;
-  const pendingTasks = tasks.filter(task => task.status === 'pending' || task.status === 'in_progress').length;
+  const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const avgTasksPerClient = clients.length > 0 ? Math.round(totalTasks / clients.length) : 0;
 
   const recentClients = clients
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -99,31 +101,31 @@ export const AgencyDashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Completed</p>
               <p className="text-2xl font-bold text-gray-900">{completedClients}</p>
-            </div>
+            <BarChart3 className="w-5 h-5 text-green-600 mr-2" />
           </div>
-        </Card>
-
+              <p className="text-sm text-gray-600">Task Completion</p>
+              <p className="text-xl font-bold text-gray-900">{taskCompletionRate}%</p>
         <Card>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center">
               <Clock className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pending Tasks</p>
+            <CheckSquare className="w-5 h-5 text-purple-600 mr-2" />
               <p className="text-2xl font-bold text-gray-900">{pendingTasks}</p>
-            </div>
-          </div>
+              <p className="text-sm text-gray-600">Avg Tasks/Client</p>
+              <p className="text-xl font-bold text-gray-900">{avgTasksPerClient}</p>
         </Card>
 
         <Card>
           <div className="flex items-center">
             <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
+            <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Completion Rate</p>
+              <p className="text-sm text-gray-600">Client Success</p>
               <p className="text-2xl font-bold text-gray-900">
-                {tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0}%
+                {clients.length > 0 ? Math.round((completedClients / clients.length) * 100) : 0}%
               </p>
             </div>
           </div>
