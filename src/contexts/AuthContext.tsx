@@ -158,6 +158,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Main initialization function
   const initializeAuth = async (): Promise<void> => {
     console.log('🚀 Starting auth initialization...');
+    console.log('🌐 Current URL:', window.location.href);
+    console.log('🔧 Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'MISSING');
+    console.log('🔑 Has Anon Key:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
     
     try {
       // Step 1: Get session with timeout
