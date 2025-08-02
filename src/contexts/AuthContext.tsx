@@ -165,6 +165,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 🎭 DEMO MODE: Skip Supabase and go straight to demo dashboard
     console.log('🎭 Activating demo mode - bypassing Supabase authentication');
     const demoProfile = createDemoProfile();
+    const demoUser = {
+      id: 'demo-user-id',
+      email: 'demo@agency.com',
+      user_metadata: { full_name: 'Demo User' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as any;
+    
+    setUser(demoUser);
     setUserProfile(demoProfile);
     toast.success('Welcome to PlankPort Demo!');
     return;
@@ -294,6 +303,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     console.log('🔐 Attempting sign in for:', email);
+    
+    // 🎭 DEMO MODE: Accept any credentials and sign in as demo user
+    console.log('🎭 Demo mode: Accepting any credentials');
+    const demoUser = {
+      id: 'demo-user-id',
+      email: email,
+      user_metadata: { full_name: 'Demo User' },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } as any;
+    
+    const demoProfile = createDemoProfile('demo-user-id');
+    demoProfile.email = email;
+    
+    setUser(demoUser);
+    setUserProfile(demoProfile);
+    toast.success('Welcome to PlankPort Demo!');
+    return { error: null };
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
