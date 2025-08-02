@@ -50,6 +50,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to get or create user profile
+  const getOrCreateUserProfile = async (user: SupabaseUser): Promise<User> => {
+    const { data: profile, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error?.code === 'PGRST116' || !profile) {
+      // No profile exists — create it
+      const newProfile = {
+        id: user.id,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || 'Unnamed',
+        role: 'agency_owner' as const,
+        agency_id: 'demo-agency-id',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: insertError } = await supabase.from('users').insert([newProfile]);
+      if (insertError) {
+        console.error('Failed to create user profile:', insertError);
+        throw insertError;
+      }
+
+      console.log('✅ Created new user profile:', newProfile);
+      return newProfile;
+    }
+
+    return profile;
+  };
+
   // Robust session fetching with timeout
   const getSessionWithTimeout = async (): Promise<{ session: any; user: SupabaseUser | null }> => {
     console.log('🔄 Fetching session with timeout...');
@@ -126,16 +159,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(sessionUser);
       
       // Step 2: Get user profile with timeout
-      const profile = await getUserProfileWithTimeout(sessionUser.id);
-      
-      if (!profile) {
-        console.log('🎭 No profile found, creating demo profile');
-        const demoProfile = createDemoProfile(sessionUser.id);
-        setUserProfile(demoProfile);
-        toast.success('Welcome! Using demo mode.');
+      if (session?.user) {
+        console.log('👤 Session found for user:', session.user.id);
+        setUser(session.user);
+
+        try {
+          const profile = await getOrCreateUserProfile(session.user);
+          setUserProfile(profile);
+          console.log('✅ Profile loaded or created successfully');
+        } catch (error) {
+          console.error('❌ Failed to fetch or create user profile:', error);
+          // Fallback to demo profile
+          const demoProfile = createDemoProfile(session.user.id);
+          setUserProfile(demoProfile);
+          toast.error('Profile creation failed. Using demo mode.');
+        }
       } else {
-        console.log('✅ Profile loaded successfully');
-        setUserProfile(profile);
+        console.log('📝 No session found, setting up unauthenticated state');
+        setUser(null);
+        setUserProfile(null);
       }
       
     } catch (error) {
@@ -193,19 +235,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
           if (session?.user) {
-            console.log('👤 Auth state change: user signed in');
+            console.log('🔄 Auth state change: User signed in');
             setUser(session.user);
-            
-            // Fetch profile with timeout
-            const profile = await getUserProfileWithTimeout(session.user.id);
-            
-            if (!profile) {
-              console.log('🎭 No profile in auth change, using demo profile');
+
+            try {
+              const profile = await getOrCreateUserProfile(session.user);
+              setUserProfile(profile);
+              console.log('✅ Profile updated from auth change');
+            } catch (error) {
+              console.error('❌ Error in auth state change profile fetch:', error);
+              // Use demo profile as fallback
               const demoProfile = createDemoProfile(session.user.id);
               setUserProfile(demoProfile);
-            } else {
-              console.log('✅ Profile updated from auth change');
-              setUserProfile(profile);
             }
           } else {
             console.log('👋 Auth state change: user signed out');
