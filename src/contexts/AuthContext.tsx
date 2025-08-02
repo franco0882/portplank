@@ -197,22 +197,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const runInitialization = async () => {
       try {
         // Use Promise.race to guarantee initialization completes within 8 seconds
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError || !profile) {
-            console.error("User profile fetch failed:", profileError);
-            toast.error("Login failed: no profile found.");
-            setUser(null);
-            setUserProfile(null);
-            return;
+        const initPromise = initializeAuth();
+        const timeoutPromise = createTimeoutPromise(8000, 'initialization');
+        
+        await Promise.race([initPromise, timeoutPromise]);
+      } catch (error) {
+        if (mounted) {
           console.log('🎭 Forcing demo mode due to timeout');
-
-          setUserProfile(profile);
-          console.log('✅ Profile loaded successfully');
           const demoProfile = createDemoProfile();
           setUserProfile(demoProfile);
           setUser(null);
@@ -256,21 +247,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             console.log('👋 Auth state change: user signed out');
             setUser(null);
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError || !profile) {
-            console.error("User profile fetch failed in auth state change:", profileError);
-            setUser(null);
             setUserProfile(null);
-            return;
           }
-
-          setUserProfile(profile);
-          console.log('✅ Profile updated from auth change');
         } finally {
           // Always ensure loading is false after auth state changes
           setLoading(false);
