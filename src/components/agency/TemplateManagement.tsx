@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, MoreVertical, Edit, Trash2, Copy, BookTemplate as FileTemplate } from 'lucide-react';
 import { TemplateTask, TaskType } from '../../types/database';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTemplates } from '../../hooks/useDatabase';
+import { useTemplates, useTasks } from '../../hooks/useDatabase';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -12,9 +12,13 @@ import toast from 'react-hot-toast';
 export const TemplateManagement: React.FC = () => {
   const { userProfile } = useAuth();
   const { templates, loading, createTemplate, updateTemplate, deleteTemplate } = useTemplates();
+  const { tasks: allTasks, loading: tasksLoading } = useTasks();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter to get only custom tasks (tasks without template_task_id)
+  const availableTasks = allTasks.filter(task => !task.template_task_id);
 
   const handleCreateTemplate = async (templateData: any) => {
     try {
@@ -24,6 +28,7 @@ export const TemplateManagement: React.FC = () => {
       // Error handling is done in the hook
     }
   };
+  
   const handleUpdateTemplate = async (templateData: any) => {
     if (!editingTemplate) return;
     
@@ -65,7 +70,7 @@ export const TemplateManagement: React.FC = () => {
     (template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  if (loading) {
+  if (loading || tasksLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -109,6 +114,7 @@ export const TemplateManagement: React.FC = () => {
           </h3>
           <TemplateForm
             template={editingTemplate}
+            availableTasks={availableTasks}
             onSave={editingTemplate ? handleUpdateTemplate : handleCreateTemplate}
             onCancel={() => {
               setShowCreateForm(false);
@@ -230,11 +236,12 @@ export const TemplateManagement: React.FC = () => {
 
 interface TemplateFormProps {
   template?: Template | null;
+  availableTasks: any[];
   onSave: (template: Partial<Template>) => void;
   onCancel: () => void;
 }
 
-const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel }) => {
+const TemplateForm: React.FC<TemplateFormProps> = ({ template, availableTasks, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: template?.name || '',
     description: template?.description || '',
@@ -242,26 +249,32 @@ const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel 
     tasks: template?.tasks || [],
   });
 
-  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [showTaskSelector, setShowTaskSelector] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
   };
 
-  const handleAddTask = (taskData: Partial<TemplateTask>) => {
-    const newTask: TemplateTask = {
-      id: Date.now().toString(),
+  const handleAddTask = (selectedTask: any) => {
+    // Convert the selected task to a template task
+    const templateTask: TemplateTask = {
+      id: selectedTask.id,
+      title: selectedTask.title,
+      description: selectedTask.description,
+      task_type: selectedTask.task_type,
       order_index: formData.tasks.length + 1,
       required: true,
-      ...taskData,
-    } as TemplateTask;
+      estimated_duration: selectedTask.estimated_duration,
+      instructions: selectedTask.instructions,
+      metadata: selectedTask.metadata || {},
+    };
 
     setFormData(prev => ({
       ...prev,
-      tasks: [...prev.tasks, newTask],
+      tasks: [...prev.tasks, templateTask],
     }));
-    setShowTaskForm(false);
+    setShowTaskSelector(false);
   };
 
   const handleRemoveTask = (taskId: string) => {
@@ -271,15 +284,10 @@ const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel 
     }));
   };
 
-  const taskTypes: { value: TaskType; label: string }[] = [
-    { value: 'account_creation', label: 'Account Creation' },
-    { value: 'document_upload', label: 'Document Upload' },
-    { value: 'manual_task', label: 'Manual Task' },
-    { value: 'form_completion', label: 'Form Completion' },
-    { value: 'video_recording', label: 'Video Recording' },
-    { value: 'meeting_scheduling', label: 'Meeting Scheduling' },
-    { value: 'review_approval', label: 'Review & Approval' },
-  ];
+  // Filter out tasks that are already in the template
+  const availableTasksToAdd = availableTasks.filter(task => 
+    !formData.tasks.some(templateTask => templateTask.id === task.id)
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -333,10 +341,16 @@ const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel 
             variant="secondary"
             size="sm"
             icon={Plus}
-            onClick={() => setShowTaskForm(true)}
+            onClick={() => setShowTaskSelector(true)}
+            disabled={availableTasksToAdd.length === 0}
           >
             Add Task
           </Button>
+          {availableTasksToAdd.length === 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              No available tasks. Create custom tasks on the Tasks page first.
+            </p>
+          )}
         </div>
 
         {/* Task List */}
@@ -376,22 +390,23 @@ const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel 
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setShowTaskForm(true)}
+              onClick={() => setShowTaskSelector(true)}
               className="mt-2"
+              disabled={availableTasksToAdd.length === 0}
             >
-              Add your first task
+              {availableTasksToAdd.length === 0 ? 'Create tasks on Tasks page first' : 'Add your first task'}
             </Button>
           </div>
         )}
 
-        {/* Add Task Form */}
-        {showTaskForm && (
+        {/* Task Selector */}
+        {showTaskSelector && (
           <Card className="mt-4">
-            <h5 className="font-medium text-gray-900 mb-4">Add New Task</h5>
-            <TaskForm
-              onAdd={handleAddTask}
-              onCancel={() => setShowTaskForm(false)}
-              taskTypes={taskTypes}
+            <h5 className="font-medium text-gray-900 mb-4">Select Task to Add</h5>
+            <TaskSelector
+              availableTasks={availableTasksToAdd}
+              onSelect={handleAddTask}
+              onCancel={() => setShowTaskSelector(false)}
             />
           </Card>
         )}
@@ -409,124 +424,149 @@ const TemplateForm: React.FC<TemplateFormProps> = ({ template, onSave, onCancel 
   );
 };
 
-interface TaskFormProps {
-  onAdd: (task: Partial<TemplateTask>) => void;
+interface TaskSelectorProps {
+  availableTasks: any[];
+  onSelect: (task: any) => void;
   onCancel: () => void;
-  taskTypes: { value: TaskType; label: string }[];
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ onAdd, onCancel, taskTypes }) => {
-  const [taskData, setTaskData] = useState({
-    title: '',
-    description: '',
-    task_type: 'manual_task' as TaskType,
-    required: true,
-    estimated_duration: 30,
-    instructions: '',
-  });
+const TaskSelector: React.FC<TaskSelectorProps> = ({ availableTasks, onSelect, onCancel }) => {
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredTasks = availableTasks.filter(task =>
+    task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    task.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(taskData);
+    const selectedTask = availableTasks.find(task => task.id === selectedTaskId);
+    if (selectedTask) {
+      onSelect(selectedTask);
+    }
+  };
+
+  const getTaskTypeColor = (taskType: TaskType) => {
+    switch (taskType) {
+      case 'account_creation':
+        return 'bg-blue-50 text-blue-600';
+      case 'document_upload':
+        return 'bg-green-50 text-green-600';
+      case 'manual_task':
+        return 'bg-purple-50 text-purple-600';
+      case 'form_completion':
+        return 'bg-orange-50 text-orange-600';
+      case 'video_recording':
+        return 'bg-red-50 text-red-600';
+      case 'meeting_scheduling':
+        return 'bg-yellow-50 text-yellow-600';
+      case 'review_approval':
+        return 'bg-indigo-50 text-indigo-600';
+      default:
+        return 'bg-gray-50 text-gray-600';
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Task Title *
-          </label>
-          <input
-            type="text"
-            value={taskData.title}
-            onChange={(e) => setTaskData(prev => ({ ...prev, title: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Create Facebook Account"
-            required
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Task Type *
-          </label>
-          <select
-            value={taskData.task_type}
-            onChange={(e) => setTaskData(prev => ({ ...prev, task_type: e.target.value as TaskType }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {taskTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
+    <div className="space-y-4">
+      {/* Search */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Description *
+          Search Tasks
         </label>
-        <textarea
-          value={taskData.description}
-          onChange={(e) => setTaskData(prev => ({ ...prev, description: e.target.value }))}
-          rows={2}
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Describe what the client needs to do..."
-          required
+          placeholder="Search by task name or description..."
         />
       </div>
 
+      {/* Task List */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Instructions
+          Available Tasks ({filteredTasks.length})
         </label>
-        <textarea
-          value={taskData.instructions}
-          onChange={(e) => setTaskData(prev => ({ ...prev, instructions: e.target.value }))}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Detailed step-by-step instructions for the client..."
-        />
+        <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
+          {filteredTasks.length === 0 ? (
+            <div className="p-4 text-center text-gray-500">
+              {searchTerm ? 'No tasks match your search' : 'No custom tasks available. Create tasks on the Tasks page first.'}
+            </div>
+          ) : (
+            <div className="space-y-1 p-2">
+              {filteredTasks.map((task) => (
+                <label
+                  key={task.id}
+                  className={`flex items-start space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                    selectedTaskId === task.id
+                      ? 'bg-blue-50 border border-blue-200'
+                      : 'hover:bg-gray-50 border border-transparent'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="selectedTask"
+                    value={task.id}
+                    checked={selectedTaskId === task.id}
+                    onChange={(e) => setSelectedTaskId(e.target.value)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTaskTypeColor(task.task_type)}`}>
+                        {task.task_type.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
+                    <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                      {task.estimated_duration && (
+                        <span>{task.estimated_duration} min</span>
+                      )}
+                      {task.metadata?.webhook_url && (
+                        <Badge variant="info" size="sm">Webhook</Badge>
+                      )}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Estimated Duration (minutes)
-          </label>
-          <input
-            type="number"
-            value={taskData.estimated_duration}
-            onChange={(e) => setTaskData(prev => ({ ...prev, estimated_duration: parseInt(e.target.value) || 0 }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            min="1"
-          />
+      {/* Selected Task Preview */}
+      {selectedTaskId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h6 className="font-medium text-blue-900 mb-2">Selected Task Preview:</h6>
+          {(() => {
+            const selectedTask = availableTasks.find(t => t.id === selectedTaskId);
+            return selectedTask ? (
+              <div>
+                <p className="text-sm font-medium text-blue-800">{selectedTask.title}</p>
+                <p className="text-sm text-blue-700 mt-1">{selectedTask.description}</p>
+                {selectedTask.instructions && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    <strong>Instructions:</strong> {selectedTask.instructions}
+                  </p>
+                )}
+              </div>
+            ) : null;
+          })()}
         </div>
-        
-        <div className="flex items-center">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={taskData.required}
-              onChange={(e) => setTaskData(prev => ({ ...prev, required: e.target.checked }))}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <span className="ml-2 text-sm text-gray-700">Required task</span>
-          </label>
-        </div>
-      </div>
+      )}
 
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+      <form onSubmit={handleSubmit} className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
         <Button type="button" variant="ghost" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
+        <Button type="submit" disabled={!selectedTaskId}>
           Add Task
         </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
