@@ -58,11 +58,11 @@ export const Header: React.FC = () => {
                 />
                 <div className="hidden md:block text-left">
                   <div className="font-medium text-sm">
-                    {currentPlan.name.replace('PlankPort - ', '').replace(' (Monthly)', '').replace(' (Yearly)', '')}
+                    {userProfile?.full_name || 'User'}
                   </div>
                   {currentPlan && (
                     <div className="text-xs text-gray-500">
-                      {currentPlan.name.replace('Portplank - ', '').replace(' (Monthly)', '').replace(' (Yearly)', '')}
+                      {currentPlan.name.replace('PlankPort - ', '').replace(' (Monthly)', '').replace(' (Yearly)', '')}
                     </div>
                   )}
                 </div>
