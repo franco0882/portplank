@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
-import { CheckSquare, Clock, AlertCircle, Filter, Search } from 'lucide-react';
+import { CheckSquare, Clock, AlertCircle, Filter, Search, Plus, BookTemplate as FileTemplate } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTasks } from '../../hooks/useDatabase';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import { TaskCard } from './TaskCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 export const TaskManagement: React.FC = () => {
   const { userProfile } = useAuth();
   const { tasks, loading, updateTask } = useTasks();
+  const [activeTab, setActiveTab] = useState<'preset' | 'custom'>('preset');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'waiting'>('all');
 
   const isClient = userProfile?.role === 'client';
 
+  // Separate tasks into preset (from templates) and custom tasks
+  const presetTasks = tasks.filter(task => task.template_task_id);
+  const customTasks = tasks.filter(task => !task.template_task_id);
+  
+  const currentTasks = activeTab === 'preset' ? presetTasks : customTasks;
   const handleTaskSubmit = async (taskId: string, submission: any) => {
     try {
       // Create submission and update task status
@@ -32,7 +39,7 @@ export const TaskManagement: React.FC = () => {
     }
   };
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = currentTasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -42,12 +49,13 @@ export const TaskManagement: React.FC = () => {
   });
 
   const getStatusCounts = () => {
+    const tasksToCount = currentTasks;
     return {
-      all: tasks.length,
-      pending: tasks.filter(t => t.status === 'pending').length,
-      in_progress: tasks.filter(t => t.status === 'in_progress').length,
-      completed: tasks.filter(t => t.status === 'completed').length,
-      waiting: tasks.filter(t => t.status === 'waiting').length,
+      all: tasksToCount.length,
+      pending: tasksToCount.filter(t => t.status === 'pending').length,
+      in_progress: tasksToCount.filter(t => t.status === 'in_progress').length,
+      completed: tasksToCount.filter(t => t.status === 'completed').length,
+      waiting: tasksToCount.filter(t => t.status === 'waiting').length,
     };
   };
 
@@ -75,6 +83,50 @@ export const TaskManagement: React.FC = () => {
         </p>
       </div>
 
+      {/* Task Type Tabs */}
+      <Card>
+        <div className="flex items-center justify-between">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveTab('preset')}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === 'preset'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <FileTemplate className="w-4 h-4 mr-2 inline" />
+              Preset Tasks ({presetTasks.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('custom')}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                activeTab === 'custom'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              <CheckSquare className="w-4 h-4 mr-2 inline" />
+              Custom Tasks ({customTasks.length})
+            </button>
+          </div>
+          
+          {!isClient && activeTab === 'custom' && (
+            <Button size="sm" icon={Plus}>
+              Add Custom Task
+            </Button>
+          )}
+        </div>
+        
+        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600">
+            {activeTab === 'preset' 
+              ? 'Tasks created from onboarding templates. These follow your standardized workflows.'
+              : 'One-off tasks created specifically for individual clients outside of templates.'
+            }
+          </p>
+        </div>
+      </Card>
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="p-4">
@@ -174,16 +226,31 @@ export const TaskManagement: React.FC = () => {
 
       {filteredTasks.length === 0 && (
         <Card className="text-center py-12">
-          <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No tasks found</h3>
+          {activeTab === 'preset' ? (
+            <FileTemplate className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          ) : (
+            <CheckSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          )}
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No {activeTab} tasks found
+          </h3>
           <p className="text-gray-600">
             {searchTerm || statusFilter !== 'all' 
               ? 'Try adjusting your search or filters'
-              : isClient 
-                ? 'No tasks have been assigned to you yet'
-                : 'No tasks exist yet. Create some clients and templates to get started.'
+              : activeTab === 'preset'
+                ? isClient 
+                  ? 'No template-based tasks have been assigned to you yet'
+                  : 'No preset tasks exist yet. Create templates and assign them to clients.'
+                : isClient
+                  ? 'No custom tasks have been assigned to you yet'
+                  : 'No custom tasks exist yet. Create custom tasks for specific client needs.'
             }
           </p>
+          {!isClient && activeTab === 'custom' && !searchTerm && statusFilter === 'all' && (
+            <Button className="mt-4" icon={Plus}>
+              Create Custom Task
+            </Button>
+          )}
         </Card>
       )}
     </div>
