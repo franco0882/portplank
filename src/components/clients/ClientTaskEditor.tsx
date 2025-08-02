@@ -608,13 +608,12 @@ export const ClientTaskEditor: React.FC = () => {
   );
 };
 
-interface TaskFormProps {
+export interface TaskFormProps {
   task?: Task;
   onSave: (taskData: Partial<Task>) => void;
   onCancel: () => void;
 }
 
-const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',

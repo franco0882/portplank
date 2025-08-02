@@ -7,6 +7,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { TaskCard } from './TaskCard';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { TaskForm } from '../clients/ClientTaskEditor';
 
 export const TaskManagement: React.FC = () => {
   const { userProfile } = useAuth();
@@ -227,7 +228,7 @@ export const TaskManagement: React.FC = () => {
         {showCreateCustomTask && (
           <Card>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Custom Task</h3>
-            <CustomTaskForm
+            <TaskForm
               onSave={handleCreateCustomTask}
               onCancel={() => setShowCreateCustomTask(false)}
             />
