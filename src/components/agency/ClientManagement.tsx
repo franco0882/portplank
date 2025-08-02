@@ -3,7 +3,7 @@ import { Plus, Search, Filter, MoreVertical, Edit, Trash2, User, Building, Mail,
 import { Template } from '../../types/database';
 import { useAuth } from '../../contexts/AuthContext';
 import { useClients, useTemplates } from '../../hooks/useDatabase';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseAdmin } from '../../lib/supabase';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -50,7 +50,7 @@ export const ClientManagement: React.FC = () => {
       // Create auth user for client
       const tempPassword = Math.random().toString(36).slice(-8);
       
-      const { data, error } = await supabase.auth.admin.createUser({
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email: client.email,
         password: tempPassword,
         email_confirm: true,
