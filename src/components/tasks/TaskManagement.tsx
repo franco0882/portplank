@@ -11,6 +11,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 export const TaskManagement: React.FC = () => {
   const { userProfile } = useAuth();
   const { tasks, loading, updateTask } = useTasks();
+  const [showCreateCustomTask, setShowCreateCustomTask] = useState(false);
   const [activeTab, setActiveTab] = useState<'preset' | 'custom'>('preset');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed' | 'waiting'>('all');
@@ -36,6 +37,16 @@ export const TaskManagement: React.FC = () => {
       await updateTask(taskId, { status });
     } catch (error) {
       console.error('Error updating task status:', error);
+    }
+  };
+
+  const handleCreateCustomTask = async (taskData: any) => {
+    try {
+      // In a real implementation, this would create the task in the database
+      console.log('Creating custom task:', taskData);
+      setShowCreateCustomTask(false);
+    } catch (error) {
+      console.error('Error creating custom task:', error);
     }
   };
 
@@ -113,6 +124,11 @@ export const TaskManagement: React.FC = () => {
           
           {!isClient && activeTab === 'custom' && (
             <Button size="sm" icon={Plus}>
+              Add Custom Task
+            </Button>
+          )}
+          {!isClient && activeTab === 'custom' && (
+            <Button size="sm" icon={Plus} onClick={() => setShowCreateCustomTask(true)}>
               Add Custom Task
             </Button>
           )}
@@ -212,6 +228,17 @@ export const TaskManagement: React.FC = () => {
 
       {/* Task List */}
       <div className="space-y-4">
+        {/* Create Custom Task Form */}
+        {showCreateCustomTask && (
+          <Card>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Custom Task</h3>
+            <CustomTaskForm
+              onSave={handleCreateCustomTask}
+              onCancel={() => setShowCreateCustomTask(false)}
+            />
+          </Card>
+        )}
+
         {filteredTasks.map((task) => (
           <TaskCard
             key={task.id}
@@ -250,9 +277,11 @@ export const TaskManagement: React.FC = () => {
             <Button className="mt-4" icon={Plus}>
               Create Custom Task
             </Button>
+            <Button className="mt-4" icon={Plus} onClick={() => setShowCreateCustomTask(true)}>
+              Create Custom Task
+            </Button>
           )}
         </Card>
       )}
     </div>
   );
-};
