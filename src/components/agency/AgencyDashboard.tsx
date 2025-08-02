@@ -62,7 +62,7 @@ export const AgencyDashboard: React.FC = () => {
           {currentPlan && (
             <div className="mt-2">
               <Badge variant={hasActiveSubscription ? 'success' : 'warning'} size="sm">
-                {currentPlan.name.replace('Portplank - ', '')} - {hasActiveSubscription ? 'Active' : 'Inactive'}
+                {currentPlan.name.replace('PlankPort - ', '')} - {hasActiveSubscription ? 'Active' : 'Inactive'}
               </Badge>
             </div>
           )}
