@@ -16,11 +16,11 @@ export const EmployeeManagement: React.FC = () => {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const currentPlan = getCurrentPlan();
-  const maxEmployees = currentPlan?.name.includes('Agency') ? 10 : currentPlan?.name.includes('Startup') ? 3 : 1;
+  // For demo mode, we're on the free plan which only allows 1 employee (the owner)
+  const maxEmployees = 1;
 
   useEffect(() => {
-    // Mock employee data
+    // Free plan only has the owner
     const mockEmployees: User[] = [
       {
         id: userProfile?.id || '1',
@@ -29,15 +29,6 @@ export const EmployeeManagement: React.FC = () => {
         role: 'agency_owner',
         agency_id: userProfile?.agency_id || 'agency1',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        email: 'admin@agency.com',
-        full_name: 'Sarah Johnson',
-        role: 'agency_admin',
-        agency_id: userProfile?.agency_id || 'agency1',
-        created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
         updated_at: new Date().toISOString(),
       },
     ];

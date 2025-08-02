@@ -51,11 +51,6 @@ export const AgencyDashboard: React.FC = () => {
           )}
         </div>
         <div className="flex space-x-3">
-          <Link to="/dashboard/employees">
-            <Button variant="secondary" icon={UserPlus}>
-              Manage Team
-            </Button>
-          </Link>
           <Link to="/dashboard/clients">
             <Button icon={Plus}>
               Add Client
