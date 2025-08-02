@@ -250,7 +250,7 @@ export const ClientManagement: React.FC = () => {
                   className="w-full"
                   onClick={() => window.location.href = `/dashboard/clients/${client.id}/editor`}
                 >
-                  View Dashboard
+                  Dashboard Editor
                 </Button>
               </div>
             </Card>
