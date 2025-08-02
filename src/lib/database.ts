@@ -6,6 +6,7 @@ type Tables = Database['public']['Tables'];
 export class DatabaseService {
   // Users
   static async getUser(id: string) {
+    console.log('Fetching user profile for ID:', id);
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -19,7 +20,7 @@ export class DatabaseService {
         return null;
       }
       console.error('Database error fetching user:', error);
-      throw error;
+      return null;
     }
     console.log('User profile fetched successfully:', data);
     return data;

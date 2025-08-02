@@ -16,6 +16,8 @@ import { SuccessPage } from './components/success/SuccessPage';
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, userProfile, loading } = useAuth();
   
+  console.log('ProtectedRoute state:', { user: !!user, userProfile: !!userProfile, loading });
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -30,7 +32,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
               <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
             </div>
             <p className="text-xs text-gray-500 mt-4">
-              If this takes too long, try refreshing the page
+              If this takes too long, <button onClick={() => window.location.reload()} className="text-blue-600 underline">refresh the page</button>
             </p>
           </div>
         </div>
@@ -39,6 +41,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (!user) {
+    console.log('No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 

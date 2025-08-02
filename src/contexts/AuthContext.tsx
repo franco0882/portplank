@@ -35,19 +35,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const initializeAuth = async () => {
       try {
-        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
         if (session?.user) {
+          console.log('Session found, setting user:', session.user.id);
           setUser(session.user);
           
           // Fetch real user profile from database
           try {
             const profile = await DatabaseService.getUser(session.user.id);
+            console.log('Profile fetch result:', profile);
             if (mounted) {
-              setUserProfile(profile);
+              if (profile) {
+                setUserProfile(profile);
+                console.log('User profile set successfully');
+              } else {
+                console.log('No profile found, signing out user');
+                await supabase.auth.signOut();
+                setUser(null);
+                setUserProfile(null);
+                toast.error('Profile not found. Please sign in again.');
+              }
             }
           } catch (error) {
             console.error('Error fetching user profile:', error);
@@ -60,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
         } else {
+          console.log('No session found');
           if (mounted) {
             setUser(null);
             setUserProfile(null);
@@ -74,16 +85,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } finally {
         if (mounted) {
+          console.log('Setting loading to false');
           setLoading(false);
         }
       }
     };
 
+    setLoading(true);
     initializeAuth();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id);
         if (!mounted) return;
 
         setUser(session?.user ?? null);
@@ -93,13 +107,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const profile = await DatabaseService.getUser(session.user.id);
             if (mounted) {
-              setUserProfile(profile);
+              if (profile) {
+                setUserProfile(profile);
+              } else {
+                setUserProfile(null);
+                toast.error('Profile not found. Please sign in again.');
+              }
             }
           } catch (error) {
             console.error('Error fetching user profile:', error);
             if (mounted) {
               setUserProfile(null);
-              toast.error('Profile not found. Please sign in again.');
             }
           }
         } else {
