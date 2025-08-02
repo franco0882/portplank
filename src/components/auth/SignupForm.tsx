@@ -6,6 +6,7 @@ import { useStripe } from '../../hooks/useStripe';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { PasswordStrengthMeter } from '../ui/PasswordStrengthMeter';
 import toast from 'react-hot-toast';
 
 interface SignupFormProps {
