@@ -274,6 +274,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <p className="text-xl text-gray-600 mb-8">
             PlankPort started when our founders, Alex and Sarah, were running their own marketing agency. 
             Help us transform how agencies onboard clients. Start with PlankPort today.
+          </p>
           <Link to="/signup">
             <Button size="lg" className="px-8 py-4 text-lg">
               Get Started
